@@ -8,6 +8,7 @@ import networkx as nx
 import random
 import math
 import csv
+import Image
 
 # Global variables
 
@@ -17,6 +18,8 @@ r = 1.5
 # Size of graph
 n = 200
 
+# h value
+h = 0.01
 # Init graph with values
 def init_graph():
     # Initialize graph
@@ -37,7 +40,7 @@ def init_graph():
 
     # Empathy vanlues
     for i in range(0, n):
-        g.node[i]['h'] = random.random()%0.01
+        g.node[i]['h'] = random.random()%h
 
     # Edge weights - uniform as of now due to paucity of time
     e = g.edges()
@@ -82,7 +85,7 @@ def opinion_update(g):
 
 
 
-if __name__ == "__main__":
+def main(result_file):
     # Number of iterations to avg opinion value over
     iterations = 25
     # Number of rounds for each iteration
@@ -106,3 +109,20 @@ if __name__ == "__main__":
     for (i, j) in zip(x_list, h_list):
         wr_x.writerow([i])
         wr_h.writerow([j])
+
+    # Display polarization
+    img = Image.new('L', (10, 20), "black")
+    pixels = img.load()
+    pixel_index = 0
+    for i in range(img.size[0]):
+        for j in range(img.size[1]):
+            OldValue = (x_list[pixel_index])
+            NewValue = (((OldValue - 0) * (255 - 0)) / (1 - 0)) + 0
+            img.putpixel((i,j), NewValue)
+    #img.show()
+    img.save(result_file)
+
+if __name__ == "__main__":
+    for h in range(1, 11, 1):
+        h = h/100.0
+        main('polarization' + str(h) + '.png')
