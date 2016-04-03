@@ -19,11 +19,19 @@ r = 1.5
 n = 200
 
 # h value
-h = 0.01
+h = 1
+
+# p value
+p = 0.02
+
+# weight matrix
+w = [[0] * n]*n
+
 # Init graph with values
 def init_graph():
     # Initialize graph
-    g = nx.binomial_graph(n, 0.02)
+    # g = nx.binomial_graph(n, p, seed=None, directed=True)
+    g = nx.binomial_graph(n, p, seed=None, directed=False)
 
     # Opinions
     # Initialize initial opinion values
@@ -38,15 +46,17 @@ def init_graph():
     for i in range(20, 180):
         g.node[i]['x'] = random.random()%0.5
 
-    # Empathy vanlues
+    # Empathy values
     for i in range(0, n):
-        g.node[i]['h'] = random.random()%h
+        g.node[i]['h'] = random.gauss(0.5, 0.01)
 
     # Edge weights - uniform as of now due to paucity of time
     e = g.edges()
     weights  = {}
     for i in range(0, len(e)):
         weights[e[i]] = 1
+        w[e[i][0]][e[i][1]] = 1
+        w[e[i][1]][e[i][0]] = 1
 
     nx.set_edge_attributes(g, 'w', weights)
     for i in g.nodes():
@@ -58,6 +68,7 @@ def init_graph():
             l = l + 1
 
         g[i][i]['w'] = l
+        w[i][i] = l
 
     return g
 
@@ -71,17 +82,17 @@ def opinion_update(g):
         weighted_opinion = 0
         weights = 0
         for j in Ni:
-            weighted_opinion = weighted_opinion + g[i][j]['w']* g.node[j]['x']
-            weights = weights + g[i][j]['w']
+            weighted_opinion = weighted_opinion + w[i][j]* g.node[j]['x']
+            weights = weights + w[i][j]
 
-        g.node[i]['x'] = (g.node[i]['x'] * g[i][i]['w'] + weighted_opinion)/(g[i][i]['w'] + weights)
+        g.node[i]['x'] = (g.node[i]['x'] * w[i][i] + weighted_opinion)/(w[i][i] + weights)
 
     # Update weights
     e = g.edges()
     for i in e:
         exp_value = math.pow((g.node[i[0]]['x'] - g.node[i[1]]['x']),2)
         T = math.exp(-exp_value/g.node[i[0]]['h'])
-        g[i[0]][i[1]]['w'] = (g[i[0]][i[1]]['w'] + r*T)/(1 + r)
+        w[i[0]][i[1]] = (w[i[0]][i[1]] + r*T)/(1 + r)
 
 
 
@@ -104,7 +115,7 @@ def main(result_file):
     x_list[:] = [x / (iterations) for x in x_list]
     h_list[:] = [h / (iterations) for h in h_list]
     # write to csv file
-    wr_x = csv.writer(open("results.csv", 'wb'), dialect='excel')
+    wr_x = csv.writer(open(result_file + '.csv', 'wb'), dialect='excel')
     wr_h = csv.writer(open("h.csv", 'wv'), dialect='excel')
     for (i, j) in zip(x_list, h_list):
         wr_x.writerow([i])
@@ -120,9 +131,9 @@ def main(result_file):
             NewValue = (((OldValue - 0) * (255 - 0)) / (1 - 0)) + 0
             img.putpixel((i,j), NewValue)
     #img.show()
-    img.save(result_file)
+    img.save(result_file + '.png')
 
 if __name__ == "__main__":
-    for h in range(1, 11, 1):
-        h = h/100.0
-        main('polarization' + str(h) + '.png')
+    # for h in range(1, 11, 1):
+        # h = h/100.0
+    main('polarization' + str(h))
