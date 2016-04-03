@@ -50,11 +50,23 @@ def init_graph():
     for i in range(0, n):
         g.node[i]['h'] = random.gauss(0.5, 0.01)
 
+    # Curmudegeons 
+    for i in range(0, n):
+        g.node[i]['c'] = False
+
+    for i in range(50, 55):
+        g.node[i]['c'] = True
+
     # Edge weights - uniform as of now due to paucity of time
     e = g.edges()
     weights  = {}
     for i in range(0, len(e)):
-        weights[e[i]] = 1
+        # Set weight to 0 if node is a curmudegeon
+        if g.node[e[i][0]] == True:
+            weights[e[i]] = 0
+        else:
+            weights[e[i]] = 1
+
         w[e[i][0]][e[i][1]] = 1
         w[e[i][1]][e[i][0]] = 1
 
@@ -69,6 +81,7 @@ def init_graph():
 
         g[i][i]['w'] = l
         w[i][i] = l
+
 
     return g
 
@@ -93,6 +106,9 @@ def opinion_update(g):
         exp_value = math.pow((g.node[i[0]]['x'] - g.node[i[1]]['x']),2)
         T = math.exp(-exp_value/g.node[i[0]]['h'])
         w[i[0]][i[1]] = (w[i[0]][i[1]] + r*T)/(1 + r)
+        # If a curmudegeon then weight is always 0
+        if(g.node[i[0]]['c'] == True):
+            w[i[0]][i[1]] = 0 
 
 
 
