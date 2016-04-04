@@ -1,6 +1,5 @@
 """
-Program to implement Erdos Reyni graph or binomial graph for CS 886 with
-networkx package
+Program to implement Caveman graph for CS 886 with networkx package
 
 Krishna Vaidyanathan
 """
@@ -18,11 +17,14 @@ r = 1.5
 # Size of graph
 n = 200
 
+# Number of cliques
+nc = 5
+
+# Step
+step = int(n/nc)
+
 # h value
 h = 1
-
-# p value
-p = 0.02
 
 # weight matrix
 w = [[0] * n]*n
@@ -30,21 +32,38 @@ w = [[0] * n]*n
 # Init graph with values
 def init_graph():
     # Initialize graph
-    # g = nx.binomial_graph(n, p, seed=None, directed=True)
-    g = nx.binomial_graph(n, p, seed=None, directed=False)
+    # g = nx.binomial_graph(n, p, seed=None, directed=False)
+    g = nx.Graph()
+    
+    # Add n nodes
+    for i in range(0, n):
+        g.add_node(i)
+
+    # Add edges
+    # Add clique edges
+    for i in range(step, n, step):
+        for j in range(i - step, i):
+            for k in range(i-step, i):
+                g.add_edge(i,j)
+                g.add_edge(j,i)
+
+    # Add edges between cliques
+    for i in range(step, n, step):
+        g.add_edge(i - 5, i + 3)
 
     # Opinions
     # Initialize initial opinion values
-    # Extreme values
-    for i in range(0, 20):
-        g.node[i]['x'] = 1
+    for j in range(0, n, step):
+        # Extreme values
+        for i in range(j, int(j + step * 1/10)):
+            g.node[i]['x'] = 1
 
-    for i in range(180, n):
-        g.node[i]['x'] = 0
+        for i in range(int(j + step*9/10),j + step):
+            g.node[i]['x'] = 0
 
-    # Moderate values
-    for i in range(20, 180):
-        g.node[i]['x'] = random.random()%0.5
+        # Moderate values
+        for i in range(int(j + step*1/10),int(j + step*9/10)):
+            g.node[i]['x'] = random.random()%0.5
 
     # Empathy values
     for i in range(0, n):
@@ -54,8 +73,8 @@ def init_graph():
     for i in range(0, n):
         g.node[i]['c'] = False
 
-    for i in range(10, 50):
-        g.node[i]['c'] = True
+    # for i in range(10, 50):
+        # g.node[i]['c'] = True
 
     # Edge weights - uniform as of now due to paucity of time
     e = g.edges()
